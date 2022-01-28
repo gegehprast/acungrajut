@@ -13,7 +13,9 @@ const MainLayout = ({ children }: Props): JSX.Element => {
                 <meta name="viewport" content="initial-scale=1.0, width=device-width" />
             </Head>
 
-            {children}
+            <div className='w-full min-h-[200vh]'>
+                {children}
+            </div>
         </>
     )
 }
