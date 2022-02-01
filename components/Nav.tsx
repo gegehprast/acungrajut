@@ -4,7 +4,7 @@ import Search from './icons/Search'
 import Logo from './Logo'
 
 const Nav = () => {
-    return <nav className='w-full h-[64px] lg:h-[128px] mx-auto absolute z-10'>
+    return <nav className='w-full h-[64px] md:h-[96px] lg:h-[128px] mx-auto absolute z-10'>
         <div className='flex items-center justify-between w-11/12 h-full mx-auto text-white lg:w-10/12'>
             <div className='w-7 h-7 drop-shadow-main md:hidden'>
                 <MenuAlt />
