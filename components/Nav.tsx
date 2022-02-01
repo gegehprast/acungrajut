@@ -14,7 +14,7 @@ const Nav = () => {
                 <Logo />
             </div>
 
-            <ul className='hidden md:flex items-center font-semibold justify-center font-nav text-xl xl:text-[28px]'>
+            <ul className='hidden md:flex items-center font-medium justify-center font-nav text-xl xl:text-[28px]'>
                 <li className='mx-4 xl:mx-8'>
                     <a href='#' className='drop-shadow-main'>Collection</a>
                 </li>
