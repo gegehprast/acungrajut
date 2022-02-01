@@ -10,7 +10,7 @@ const Nav = () => {
                 <MenuAlt />
             </div>
 
-            <div className='lg:mr-10 max-w-[180px] md:max-w-[240px] xl:max-w-[320px] aspect-[16/3.60]'>
+            <div className='lg:mr-10 max-w-[180px] md:max-w-[240px] lg:max-w-[360px] xl:w-[360px] 1366px:w-[320px] 2xl:w-[360px] aspect-[16/3.60]'>
                 <Logo />
             </div>
 
