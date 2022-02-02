@@ -194,7 +194,7 @@ const Banner = () => {
                             ${transitionInValues[3]};
                             ${transitionInValues[3]};
                         `}
-                        dur="500ms"
+                        dur="1000ms"
                         begin="indefinite"
                         ref={transitionIn}
                     />
@@ -207,7 +207,7 @@ const Banner = () => {
                             ${transitionOutValues[3]};
                             ${transitionOutValues[3]};
                         `}
-                        dur="500ms"
+                        dur="700ms"
                         begin="indefinite"
                         ref={transitionOut}
                     />
