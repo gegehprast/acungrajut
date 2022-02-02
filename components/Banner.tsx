@@ -1,6 +1,98 @@
-import React from 'react'
+import React, { useEffect, useRef } from 'react'
+import { sleep } from '../utils/general'
+
+const sliders = [
+    '/sliders/1.jpg',
+    '/sliders/2.jpg',
+    '/sliders/3.jpg',
+    '/sliders/4.jpg',
+]
+
+const transitionInValues = [
+    'M351.5 54.6111L349 45.1111C349 45.1111 340 42.6111 329.5 45.1111C319 47.6111 309 55.1111 295.5 51.1111C282 47.1111 285.5 62.6111 268.197 61.6111C250.895 60.6111 249 67.6111 249 67.6111L251.5 77.6111C254.677 79.4208 264.5 73.5666 271 76.6111C277.5 79.6556 294 83.6111 304.5 73.6111C315 63.6111 325 70.1111 335.5 69.6111C346 69.1111 343.457 57.1288 351.5 54.6111Z',
+    'M360.5 83.5L349 45.1111C349 45.1111 340 42.6111 329.5 45.1111C319 47.6111 309 55.1111 295.5 51.1111C282 47.1111 285.5 62.6111 268.197 61.6111C250.895 60.6111 249 67.6111 249 67.6111L262 112C265.177 113.81 271.5 100.956 278 104C284.5 107.044 298.5 118.5 311.5 99C324.5 79.5 329 101.5 342 101.5C355 101.5 352.457 86.0177 360.5 83.5Z',
+    'M367.5 115.5L349 45.1111C349 45.1111 340 42.6111 329.5 45.1111C319 47.6111 309 55.1111 295.5 51.1111C282 47.1111 285.5 62.6111 268.197 61.6111C250.895 60.6111 249 67.6111 249 67.6111L269.5 152C272.677 153.81 281.5 139.956 288 143C294.5 146.044 304.5 160.5 317.5 131.5C330.5 102.5 338 137.5 346 126C354 114.5 359.457 118.018 367.5 115.5Z',
+    'M379.5 153.5L349 45.1111C349 45.1111 340 42.6111 329.5 45.1111C319 47.6111 309 55.1111 295.5 51.1111C282 47.1111 285.5 62.6111 268.197 61.6111C250.895 60.6111 249 67.6111 249 67.6111L276.5 179C279.677 180.81 284.5 176 295 174C305.5 172 319.5 169.5 327.5 166C335.5 162.5 352.5 160.826 355.5 159C358.5 157.174 371.457 156.018 379.5 153.5Z',
+]
+
+const transitionOutValues = [
+    'M379.499 153.5L354.303 61C354.303 61 345.303 58.5 334.803 61C324.303 63.5 314.303 71 300.803 67C287.303 63 290.803 78.5 273.5 77.5C256.197 76.5 254.303 83.5 254.303 83.5L276.499 179C279.677 180.81 284.499 176 294.999 174C305.499 172 319.499 169.5 327.499 166C335.499 162.5 352.499 160.826 355.499 159C358.499 157.174 371.457 156.018 379.499 153.5Z',
+    'M379.499 153.5L363 90C363 90 354 87.5 343.5 90C333 92.5001 323 100 309.5 96C296 92 299.5 107.5 282.197 106.5C264.895 105.5 263 112.5 263 112.5L276.499 179C279.676 180.81 284.499 176 294.999 174C305.499 172 319.499 169.5 327.499 166C335.499 162.5 352.499 160.826 355.499 159C358.499 157.174 371.456 156.018 379.499 153.5Z',
+    'M379.499 153.5L370 122.5C370 122.5 362.5 131 354 118C345.5 105 330.5 142.5 319.5 137C308.5 131.5 308.5 154.5 292 145C275.5 135.5 271.188 147.5 271.188 147.5L276.499 179C279.676 180.81 284.499 176 294.999 174C305.499 172 319.498 169.5 327.498 166C335.498 162.5 352.498 160.826 355.498 159C358.498 157.174 371.456 156.018 379.499 153.5Z',
+    'M382 160L378 150.5C378 150.5 363.5 157 361 156.5C358.5 156 330 165 326.5 165C323 165 304.5 170.5 298.5 171.5C292.5 172.5 278 178 278 178L279 185.5C282.177 187.31 287 182.5 297.5 180.5C308 178.5 322 176 330 172.5C338 169 355 167.326 358 165.5C361 163.674 373.957 162.518 382 160Z',
+]
+
+const opened = transitionInValues[3]
+const closed = transitionOutValues[3]
 
 const Banner = () => {
+    const sliderIndex = useRef(0)
+    const slider = useRef<SVGImageElement>()
+    const sliderAnimation = useRef<SVGAnimationElement>()
+    const transitionPath = useRef<SVGPathElement>()
+    const transitionIn = useRef<SVGAnimationElement>()
+    const transitionOut = useRef<SVGAnimationElement>()
+
+    useEffect(() => {
+        // storing current refs for use in cleanup later
+        const currTransitionIn = transitionIn.current
+        const currTransitionOut = transitionOut.current
+
+        // add beginEvent and endEvent on transitionIn animation
+        currTransitionIn.addEventListener('beginEvent', handleBeginTransitionIn)
+        currTransitionIn.addEventListener('endEvent', handleEndTransitionIn)
+
+        // add beginEvent on transitionOut animation
+        currTransitionOut.addEventListener('endEvent', handleEndTransitionOut)
+
+        // begin transitionIn animation
+        currTransitionIn.beginElement()
+    
+        return () => {
+            currTransitionIn.removeEventListener('beginEvent', handleBeginTransitionIn)
+            currTransitionIn.removeEventListener('endEvent', handleEndTransitionIn)
+
+            currTransitionOut.removeEventListener('endEvent', handleEndTransitionOut)
+        }
+    }, [])
+    
+    
+    const handleBeginTransitionIn = () => {
+        // determine next slider image
+        let nextSliderIndex = sliderIndex.current + 1
+
+        if (nextSliderIndex >= sliders.length) {
+            nextSliderIndex = 0
+        }
+        
+        // set current ref
+        sliderIndex.current = nextSliderIndex
+
+        // begin slider animation
+        sliderAnimation.current.beginElement()
+
+        // set the image
+        slider.current.setAttribute('href', sliders[nextSliderIndex])
+    }
+
+    const handleEndTransitionIn = async () => {
+        await sleep(2000)
+
+        // start transitionOut animation
+        transitionOut.current.beginElement()
+
+        // set the default `d` attribute to ending value (closed)
+        transitionPath.current.setAttribute('d', closed)
+    }
+
+    const handleEndTransitionOut = () => {
+        // start transitionIn animation
+        transitionIn.current.beginElement()
+        
+        // set the default `d` attribute to beginning value (open)
+        transitionPath.current.setAttribute('d', opened)
+    }
+
     return <svg className='absolute top-0 h-full -right-[10rem] md:-right-[13rem] xl:right-0 text-secondary' 
         viewBox="0 0 400 186.691" 
         fill="none" 
@@ -20,7 +112,7 @@ const Banner = () => {
                         " 
                     dur="20s" 
                     repeatCount="indefinite"
-                    end="0s"/>
+                />
             </path>
 
             <path d="M0 0V112.5C0 112.5 28.5 143 58.5 156C88.5 169 128.5 143.5 164.5 153.5C200.5 163.5 208 199.5 294.5 153.5C381 107.5 357 2.31266e-05 357 2.31266e-05L0 0Z" fill="currentColor">
@@ -34,7 +126,7 @@ const Banner = () => {
                         " 
                     dur="20s" 
                     repeatCount="indefinite"
-                    end="0s"/>
+                />
             </path>
             
             <mask id="mask0_55_442" style={{ maskType: 'alpha' }} maskUnits="userSpaceOnUse" x="0" y="0" width="400" height="187">
@@ -49,7 +141,7 @@ const Banner = () => {
                         " 
                         dur="20s" 
                         repeatCount="indefinite"
-                        end="0s"/>
+                    />
                 </path>
             </mask>
 
@@ -57,7 +149,9 @@ const Banner = () => {
                 <path fillRule="evenodd" clipRule="evenodd" d="M212.272 3.05616C202.705 6.4825 194.437 14.524 188.345 26.3659C187.073 28.8149 183.43 37.4583 182.513 40.0881C182.321 40.6981 181.768 40.7803 168.834 42.1729C137.252 45.5313 139.284 45.24 121.04 48.8662L104.341 52.1429L107.92 69.5405L143.202 62.2825C162.607 58.2906 178.497 55.0853 178.509 55.1462C178.522 55.207 178.279 56.4933 177.983 57.9809C174.193 76.5456 173.251 103.56 175.537 128.388C176.574 139.746 178.421 153.347 179.929 160.677L180.73 164.57L129.632 175.082L132.009 186.64L194.817 173.719L193.666 168.123C193.034 165.051 192.611 162.38 192.702 162.203C193.022 161.756 201.348 164.165 204.84 165.729C206.519 166.493 208.998 167.759 210.397 168.549L212.884 170.003L220.506 168.371L228.121 166.71L225.527 164.58C217.152 157.617 206.082 152.349 195.657 150.372C194.139 150.082 192.889 149.705 192.845 149.492C192.808 149.31 193.025 147.902 193.315 146.384C194.584 140.068 197.124 133.458 200.178 128.582L201.923 125.813L207.333 129.456C214.833 134.475 220.577 139.285 227.113 146.089C230.212 149.287 237.675 158.753 239.709 162.012L241.049 164.209L253.397 161.669L253.071 161.007C252.118 159.301 249.145 154.713 247.175 151.916C245.935 150.206 244.989 148.688 245.092 148.572C245.551 147.875 256.989 145.839 257.716 146.292C257.789 146.34 258.562 149.479 259.465 153.256L261.062 160.092L272.529 157.733L271.434 152.41C270.658 148.639 270.43 147.069 270.673 147.019C270.886 146.975 272.709 147.361 274.752 147.892C279.003 148.983 283.476 150.694 287.348 152.719L290.017 154.135L366.208 138.462L363.83 126.904L312.733 137.415L311.932 133.522C310.981 128.899 308.722 120.233 306.569 112.846C292.022 63.4023 269.309 24.9592 245.282 9.10499C237.728 4.12833 229.784 1.41928 222.586 1.41007C219.699 1.40155 214.661 2.18436 212.272 3.05616ZM223.303 13.3729C227.841 13.549 232.57 15.2708 237.96 18.6638C244.768 22.9381 250.828 28.6659 257.525 37.1795C267.779 50.1922 276.944 66.6944 284.957 86.5402C286.877 91.2494 288.058 94.5254 291.535 104.336L291.992 105.636L289.075 103.32C279.343 95.6207 266.198 90.5895 252.91 89.4871L250.588 89.2988L248.87 85.7213C240.553 68.4106 230.296 54.7645 220.797 48.3491L218.584 46.8387L224.733 45.4469C230.244 44.1865 231.077 43.9201 232.503 42.9926C238.687 38.9941 239.683 33.051 234.822 29.4541C233.893 28.7893 232.335 28.0001 231.396 27.7495C228.34 26.9197 226.928 26.9884 220.145 28.3837L213.849 29.6789L213.641 30.5143C213.456 31.3131 213.652 31.4948 216.452 33.3916C218.108 34.5092 219.497 35.5551 219.534 35.7376C219.572 35.9201 219.458 36.2922 219.258 36.5552C218.999 36.989 217.24 37.224 207.824 38.1465C201.707 38.7708 196.424 39.287 196.107 39.2888C195.571 39.3039 195.631 38.9747 196.623 36.7099C200.249 28.2919 205.471 21.004 210.493 17.3712C214.491 14.4566 218.631 13.161 223.303 13.3729ZM208.895 55.6797C216.505 57.538 226.794 69.1803 235.577 85.983C236.463 87.6712 237.306 89.3048 237.454 89.5597C237.712 90.0455 237.384 90.1447 233.521 90.9394C215.911 94.5621 200.138 105.732 190.401 121.431L188.307 124.81L188.15 122.972C187.885 120.142 187.866 108.954 188.128 103.289C188.907 84.4244 192.2 69.6077 197.327 61.7053C200.896 56.2474 204.126 54.5366 208.895 55.6797ZM241.789 101.539L243.049 101.502L245.056 106.479C246.161 109.231 247.242 112.021 247.471 112.671L247.916 113.911L245.46 114.606C238.68 116.635 229.091 120.415 223.778 123.251L221.228 124.569L218.06 122.272C216.312 121.015 213.689 119.208 212.198 118.278L209.534 116.576L211.552 114.829C216.649 110.325 223.648 106.285 230.402 103.977C232.796 103.135 240.09 101.603 241.789 101.539ZM259.247 102.418C260.875 102.78 263.656 103.508 265.359 104.077C270.319 105.688 278.416 109.761 276.418 109.601C275.126 109.486 268.802 110.027 264.262 110.612C261.73 110.942 259.624 111.185 259.588 111.161C259.581 111.131 258.834 109.192 257.981 106.895C257.122 104.567 256.282 102.489 256.141 102.264C255.809 101.73 255.87 101.718 259.247 102.418ZM251.982 125.66C252.057 126.025 253.241 129.935 254.313 133.297L254.66 134.367L249.854 135.197C245.662 135.932 239.289 137.624 237.321 138.536C236.805 138.801 236.272 138.371 233.866 135.918C232.298 134.307 231.097 132.937 231.199 132.821C231.708 132.367 238.538 129.504 242.349 128.149C249.673 125.533 251.838 124.961 251.982 125.66ZM275.198 121.55C278.084 121.4 282.773 121.387 285.685 121.517L290.966 121.762L292.769 124.054C297.069 129.542 300.014 135.847 301.828 143.431L303.099 148.686L299.487 146.227C290.953 140.343 280.4 136.204 270.698 134.967C269.004 134.745 267.419 134.437 267.199 134.292C266.979 134.147 266.15 131.813 265.398 129.082C264.616 126.358 263.841 123.823 263.668 123.446L263.336 122.754L266.658 122.261C268.508 122.007 272.343 121.694 275.198 121.55Z" fill="white" fillOpacity="0.07"/>
             </g>
 
-            <rect x="262.292" y="85.7268" width="92.07" height="92.07" rx="7.085" transform="rotate(-12.8233 262.292 85.7268)" fill="url(#pattern0)" stroke="#FFB1CE" strokeWidth="3.83"/>
+            <g clipPath="url(#transition_clip)">
+                <rect x="262.292" y="85.7268" width="92.07" height="92.07" rx="7.085" transform="rotate(-12.8233 262.292 85.7268)" fill="url(#pattern0)" stroke="#FFB1CE" strokeWidth="3.83"/>
+            </g>
             
             <rect x="262.292" y="85.7268" width="92.07" height="92.07" rx="7.085" transform="rotate(-12.8233 262.292 85.7268)" stroke="#FFB1CE" strokeWidth="3.83"/>
             
@@ -73,7 +167,7 @@ const Banner = () => {
                         " 
                         dur="20s" 
                         repeatCount="indefinite"
-                        end="0s"/>
+                    />
                 </path>
             </mask>
 
@@ -85,10 +179,49 @@ const Banner = () => {
             <pattern id="pattern0" patternContentUnits="objectBoundingBox" width="1" height="1">
                 <use xlinkHref="#image0_55_442" transform="translate(0 -0.000462107) scale(0.000924214)"/>
             </pattern>
+
             <clipPath id="clip0_55_442">
                 <rect width="400" height="186.691" fill="white"/>
             </clipPath>
-            <image id="image0_55_442" width="1082" height="1083" href="/banner.jpg"/>
+
+            <clipPath id="transition_clip">
+                <path d={opened} ref={transitionPath}>
+                    <animate attributeName="d" 
+                        values={`
+                            ${transitionInValues[0]};
+                            ${transitionInValues[1]};
+                            ${transitionInValues[2]};
+                            ${transitionInValues[3]};
+                            ${transitionInValues[3]};
+                        `}
+                        dur="500ms"
+                        begin="indefinite"
+                        ref={transitionIn}
+                    />
+
+                    <animate attributeName="d" 
+                        values={`
+                            ${transitionOutValues[0]};
+                            ${transitionOutValues[1]};
+                            ${transitionOutValues[2]};
+                            ${transitionOutValues[3]};
+                            ${transitionOutValues[3]};
+                        `}
+                        dur="500ms"
+                        begin="indefinite"
+                        ref={transitionOut}
+                    />
+                </path>
+            </clipPath>
+
+            <image id="image0_55_442" width="1082" height="1083" href="/sliders/1.jpg" opacity={1} ref={slider}>
+                <animate attributeName="opacity" 
+                    from={0}
+                    to={1}
+                    dur="500ms"
+                    ref={sliderAnimation}
+                />
+            </image>
         </defs>
     </svg>
 
