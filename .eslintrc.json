@@ -6,7 +6,7 @@
             4
         ],
         "linebreak-style": [
-            "error",
+            "warn",
             "windows"
         ],
         "quotes": [
