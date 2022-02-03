@@ -14,6 +14,10 @@ module.exports = {
                 'main-2xl': '-1px 25px 25px rgba(240, 96, 149, 0.45)',
             },
 
+            boxShadow: {
+                'item': '-6px 8px 0px 1px #F84B8B',
+            },
+
             colors: {
                 main: '#F06095',
                 secondary: '#FFB1CE',
